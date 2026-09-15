@@ -134,17 +134,32 @@ export function buildGeminiPayload(input) {
 
 async function callGemini(input) {
   const apiKey = process.env.GEMINI_API_KEY;
-  const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+  let model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+  const fallbackModel = process.env.GEMINI_FALLBACK_MODEL || "gemini-3.8-flash";
   if (!apiKey) throw new RequestError(503, "AI service is not configured.", "gemini_not_configured");
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 55_000);
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify(buildGeminiPayload(input)),
-      signal: controller.signal
-    });
+    let response;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+          body: JSON.stringify(buildGeminiPayload(input)),
+          signal: controller.signal
+        });
+      } catch (error) {
+        if (attempt === 1 || controller.signal.aborted) throw error;
+        continue;
+      }
+      if (response.status >= 500 && attempt === 0) {
+        await response.body?.cancel();
+        model = fallbackModel;
+        continue;
+      }
+      break;
+    }
     if (!response.ok) {
       const providerError = await response.json().catch(() => ({}));
       const status = providerError.error?.status;

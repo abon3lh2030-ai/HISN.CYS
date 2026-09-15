@@ -8,6 +8,8 @@ This repository serves both the website and the existing iOS API. Deploy it to t
 
 Web requests use same-origin `/api/*` routes, encrypted HttpOnly cookies, CSRF checks, and request budgets. No Gemini, Supabase service, or iOS API-access secret appears in public assets. AI content and images are not persisted in operation logs. History synchronization requires explicit user pairing/consent; anonymous sessions do not persist records.
 
+Transient provider 5xx responses get one bounded retry using Gemini 3.8 Flash (configurable via `GEMINI_FALLBACK_MODEL`), shared by iOS and web. Invalid keys/permissions/requests are not retried. Provider diagnostics log only status enums, never prompts, keys or image bytes.
+
 ## Setup
 
 Node 22–24, no third-party runtime packages. `npm ci`, `npm test`, `npm run build`, `npm start`. Copy `.env.example` to `.env` for your own environment; use Node `--env-file=.env` if desired. Keep secrets in Render environment settings, never Git.

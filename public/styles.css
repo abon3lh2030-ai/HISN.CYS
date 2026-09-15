@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap');
 button svg{width:20px;height:20px;vertical-align:middle;margin-inline-start:6px}.field input[type=file]{max-width:100%}
+.topbar-title{display:flex;align-items:center;gap:12px;min-width:0}.topbar .brand-mobile{display:none}@media(max-width:760px){.topbar .brand-mobile{display:block;width:36px;height:36px;flex-shrink:0;border-radius:10px}.topbar-title{gap:10px}.topbar-title h1{font-size:1.125rem}.connection{flex-shrink:0}}
 @media(max-width:760px){.sidebar nav{overflow-x:auto;justify-content:flex-start;scrollbar-width:thin}.sidebar nav a{min-width:76px;flex:1 0 76px;font-size:.875rem}.sidebar nav a span{white-space:nowrap}.sidebar{padding-bottom:max(8px,env(safe-area-inset-bottom))}.brand-mobile{display:block;width:36px;height:36px;border-radius:10px}}
 :root{font-family:'Noto Sans Arabic',system-ui,sans-serif;color-scheme:dark;--bg:#0b1319;--panel:#121e26;--panel2:#172732;--border:#263945;--text:#f1f7fa;--muted:#9fb3c0;--accent:#61dfc3;--accent-ink:#072c25;--danger:#ff7d91;--warning:#f3c76f;--shadow:0 18px 60px #0003}
 [data-theme=light]{color-scheme:light;--bg:#f3f7f9;--panel:#fff;--panel2:#eaf2f5;--border:#cedee5;--text:#15333e;--muted:#526d79;--accent:#087d68;--accent-ink:#fff;--danger:#bd2543;--warning:#95610c;--shadow:0 18px 60px #10394a0b}

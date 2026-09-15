@@ -1,3 +1,20 @@
+diff --git a/HISNTests/AnalysisEngineTests.swift b/HISNTests/AnalysisEngineTests.swift
+index f526508..e1cfebf 100644
+--- a/HISNTests/AnalysisEngineTests.swift
++++ b/HISNTests/AnalysisEngineTests.swift
+@@ -152,6 +152,12 @@ struct SecurityToolkitTests {
+         #expect(throws: (any Error).self) { try SecureTextToolkit.decrypt(encrypted, password: "wrong") }
+     }
+ 
++    @Test("Web AES-GCM package decrypts on iOS")
++    func webCryptoCompatibility() throws {
++        let webPackage = "AWyirIDZbiccy1JMmlMQcUgwxT1ttgZK5wCw7xXBjvFqO/0n+NfkIjoENDhzKLoz/0Q9Xrr9zHI+3D8="
++        #expect(try SecureTextToolkit.decrypt(webPackage, password: "test-only-passphrase") == "حصن web iOS")
++    }
++
+     @Test("URL scanner identifies raw IP, login keyword and unusual port")
+     func urlScanner() throws {
+         let report = try URLToolkit.scan("http://192.168.1.2:8080/login")
 diff --git "a/\330\255\330\265\331\206 | HISN/App/AppIntents.swift" "b/\330\255\330\265\331\206 | HISN/App/AppIntents.swift"
 index 661171b..28f12cc 100644
 --- "a/\330\255\330\265\331\206 | HISN/App/AppIntents.swift"	
@@ -14,6 +31,32 @@ index 661171b..28f12cc 100644
          return .result(dialog: IntentDialog(stringLiteral: "\(result.score)/100"))
      }
  }
+diff --git "a/\330\255\330\265\331\206 | HISN/Core/Services/AIAssistantService.swift" "b/\330\255\330\265\331\206 | HISN/Core/Services/AIAssistantService.swift"
+index abd1833..47fcfc6 100644
+--- "a/\330\255\330\265\331\206 | HISN/Core/Services/AIAssistantService.swift"	
++++ "b/\330\255\330\265\331\206 | HISN/Core/Services/AIAssistantService.swift"	
+@@ -79,7 +79,7 @@ struct HISNBackendProvider: AIAssistantProviding {
+         guard let baseURL, let accessToken else { throw AIAssistantError.missingConfiguration }
+         var request = URLRequest(url: baseURL.appending(path: "v1/ai/chat"))
+         request.httpMethod = "POST"
+-        request.timeoutInterval = 65
++        request.timeoutInterval = 120
+         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+         request.setValue(
+diff --git "a/\330\255\330\265\331\206 | HISN/Core/Services/SecurityToolkitServices.swift" "b/\330\255\330\265\331\206 | HISN/Core/Services/SecurityToolkitServices.swift"
+index 2da990d..5ae474f 100644
+--- "a/\330\255\330\265\331\206 | HISN/Core/Services/SecurityToolkitServices.swift"	
++++ "b/\330\255\330\265\331\206 | HISN/Core/Services/SecurityToolkitServices.swift"	
+@@ -351,7 +351,7 @@ struct HISNToolAPI {
+         guard let baseURL, let accessToken else { throw ToolkitError.missingConfiguration }
+         var request = URLRequest(url: baseURL.appending(path: path))
+         request.httpMethod = "POST"
+-        request.timeoutInterval = 35
++        request.timeoutInterval = 90
+         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+         request.setValue(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown", forHTTPHeaderField: "X-HISN-App-Version")
 diff --git "a/\330\255\330\265\331\206 | HISN/Features/History/HistoryView.swift" "b/\330\255\330\265\331\206 | HISN/Features/History/HistoryView.swift"
 index 4f9ebf8..bf8eb2c 100644
 --- "a/\330\255\330\265\331\206 | HISN/Features/History/HistoryView.swift"	
