@@ -146,7 +146,16 @@ async function callGemini(input) {
       signal: controller.signal
     });
     if (!response.ok) {
-      const code = response.status === 429 ? "ai_rate_limited" : "ai_upstream_error";
+      const providerError = await response.json().catch(() => ({}));
+      const status = providerError.error?.status;
+      const reason = providerError.error?.details?.find((detail) => typeof detail.reason === "string")?.reason;
+      console.error("Gemini request rejected", response.status,
+        /^[A-Z_]{1,64}$/.test(status || "") ? status : "unknown",
+        /^[A-Z_]{1,64}$/.test(reason || "") ? reason : "unknown");
+      const code = response.status === 429 ? "ai_rate_limited"
+        : response.status === 404 ? "ai_model_unavailable"
+        : [401, 403].includes(response.status) ? "ai_access_denied"
+        : response.status === 400 ? "ai_invalid_configuration" : "ai_upstream_error";
       throw new RequestError(response.status === 429 ? 429 : 502, "AI service could not complete the request.", code);
     }
     const data = await response.json();
