@@ -42,8 +42,8 @@ async function runScan(text,type){
    $('#scan-input').value=result.text;scanExtracted=true;button.textContent='راجع النص ثم افحصه';toast('استُخرج النص. راجعه وصحح أي أخطاء قبل الفحص.');return {text:result.text,reviewRequired:true};
   }
   const result=analyze(text,type);result.contentPreview=text.slice(0,100).replace(/\d{4,}/g,'••••');
-  if(session?.connected){try{await api('/api/history',{records:[result]});records=[result,...records.filter(r=>r.id!==result.id)];toast('حُفظ الفحص في سجلك المرتبط.');}catch(e){toast('ظهرت النتيجة، لكن لم تحفظ: '+e.message);}}
   const panel=$('#scan-result');if(panel){panel.innerHTML=resultHTML(result);panel.classList.remove('hidden');}else{$('#detail-body').innerHTML=resultHTML(result);$('#detail').showModal();}
+  if(session?.connected){try{await api('/api/history',{records:[result]});records=[result,...records.filter(r=>r.id!==result.id)];toast('حُفظ الفحص في سجلك المرتبط.');}catch(e){toast('ظهرت النتيجة، لكن لم تحفظ: '+e.message);}}
   return result;
  }catch(e){showError($('#scan-error'),e);throw e;}finally{busy=false;if(button)button.disabled=false;}
 }

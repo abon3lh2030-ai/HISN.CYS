@@ -28,7 +28,7 @@ export const recommendationText={
  'recommendation.verifyUnexpected':'تحقق من أي تواصل أو طلب غير متوقع.',
  'recommendation.verifyDomain':'قارن اسم النطاق بالموقع الرسمي حرفًا بحرف.'
 };
-function signal(id,title,description,weight,category='link',key=id){signalText[id]={title,description};return {id,titleKey:`signal.${key}.title`,descriptionKey:`signal.${key}.description`,severity:weight>=38?'critical':weight>=22?'high':'caution',weight,category};}
+function signal(id,title,description,weight,category='link',key=id){signalText[id]={title,description};const severity=['shortener','phoneFormat','phonePattern'].includes(id)?'caution':['port','demoReport'].includes(id)?'high':weight>=38?'critical':weight>=22?'high':'caution';return {id,titleKey:`signal.${key}.title`,descriptionKey:`signal.${key}.description`,severity,weight,category};}
 export function analyze(content,type='message') {
  if(typeof content!=='string'||!content.trim()||content.length>12000)throw new Error('اكتب محتوى للفحص لا يتجاوز ١٢ ألف حرف.');
  let signals=[],recommendations=[],details=[];
