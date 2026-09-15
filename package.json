@@ -1,0 +1,5 @@
+{
+  "name": "hisn-web", "version": "1.0.0", "private": true, "type": "module",
+  "engines": {"node": ">=22 <25"},
+  "scripts": {"start": "node server/src/server.js", "dev": "node --watch server/src/server.js", "test": "node --test server/test/*.test.js", "build": "node --check public/app.js && node --check public/security.js && node --check server/src/server.js"}
+}

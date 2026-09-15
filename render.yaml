@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: hisn-secure-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: GEMINI_MODEL
+        value: gemini-3.6-flash
+      - key: SUPABASE_URL
+        value: https://rnighbdaxxydzkrgaorp.supabase.co
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: HISN_API_ACCESS_TOKEN
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false

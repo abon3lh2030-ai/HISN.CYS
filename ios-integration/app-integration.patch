@@ -1,0 +1,91 @@
+diff --git "a/\330\255\330\265\331\206 | HISN/App/AppIntents.swift" "b/\330\255\330\265\331\206 | HISN/App/AppIntents.swift"
+index 661171b..28f12cc 100644
+--- "a/\330\255\330\265\331\206 | HISN/App/AppIntents.swift"	
++++ "b/\330\255\330\265\331\206 | HISN/App/AppIntents.swift"	
+@@ -44,8 +44,10 @@ struct AnalyzeIncomingMessageIntent: AppIntent {
+         let context = container.mainContext
+         let hidesPreviews = defaults.object(forKey: "settings.hidePreviews") as? Bool ?? true
+         let preview = hidesPreviews ? "••••••••" : String(message.trimmingCharacters(in: .whitespacesAndNewlines).prefix(180))
+-        context.insert(ScanRecord(result: result, contentPreview: preview, source: .shortcut))
++        let record = ScanRecord(result: result, contentPreview: preview, source: .shortcut)
++        context.insert(record)
+         try context.save()
++        if SharedHistoryService.vaultKey != nil { try? await SharedHistoryService.upload([record]) }
+         return .result(dialog: IntentDialog(stringLiteral: "\(result.score)/100"))
+     }
+ }
+diff --git "a/\330\255\330\265\331\206 | HISN/Features/History/HistoryView.swift" "b/\330\255\330\265\331\206 | HISN/Features/History/HistoryView.swift"
+index 4f9ebf8..bf8eb2c 100644
+--- "a/\330\255\330\265\331\206 | HISN/Features/History/HistoryView.swift"	
++++ "b/\330\255\330\265\331\206 | HISN/Features/History/HistoryView.swift"	
+@@ -8,6 +8,7 @@ struct HistoryView: View {
+     @Query(sort: \ScanRecord.date, order: .reverse) private var records: [ScanRecord]
+     @State private var filter: Filter = .all
+     @State private var showClearConfirmation = false
++    @State private var syncError = false
+ 
+     private var filtered: [ScanRecord] {
+         switch filter { case .all: records; case .low: records.filter { $0.riskLevel == .low }; case .caution: records.filter { $0.riskLevel == .caution }; case .high: records.filter { $0.riskLevel == .high || $0.riskLevel == .critical } }
+@@ -25,17 +26,30 @@ struct HistoryView: View {
+                         }
+                         Section("history.recent") {
+                             ForEach(filtered) { record in HistoryRow(record: record) }
+-                                .onDelete { offsets in offsets.map { filtered[$0] }.forEach(modelContext.delete); try? modelContext.save() }
++                                .onDelete { offsets in removeRecords(offsets.map { filtered[$0] }) }
+                         }
+                     }
+                 }
+             }
+             .navigationTitle("tab.history")
++            .task { if SharedHistoryService.vaultKey != nil { _ = try? await SharedHistoryService.pull(into: modelContext) } }
++            .refreshable { if SharedHistoryService.vaultKey != nil { _ = try? await SharedHistoryService.pull(into: modelContext) } }
+             .toolbar { if !records.isEmpty { ToolbarItem(placement: .topBarTrailing) { Button("history.clear", role: .destructive) { showClearConfirmation = true } } } }
+             .confirmationDialog("history.clear.confirm.title", isPresented: $showClearConfirmation, titleVisibility: .visible) {
+-                Button("history.clear", role: .destructive) { records.forEach(modelContext.delete); try? modelContext.save() }
++                Button("history.clear", role: .destructive) { removeRecords(records) }
+                 Button("common.cancel", role: .cancel) {}
+             } message: { Text("history.clear.confirm.body") }
++            .alert("تعذر مزامنة الإزالة", isPresented: $syncError) { Button("common.ok") {} } message: { Text("لم يُحذف السجل. تحقق من اتصالك ثم حاول مجددًا.") }
++        }
++    }
++
++    private func removeRecords(_ items: [ScanRecord]) {
++        Task { @MainActor in
++            do {
++                if SharedHistoryService.vaultKey != nil { try await SharedHistoryService.remove(ids: items.map(\.id)) }
++                items.forEach(modelContext.delete)
++                try modelContext.save()
++            } catch { syncError = true }
+         }
+     }
+ 
+diff --git "a/\330\255\330\265\331\206 | HISN/Features/Scan/ScanView.swift" "b/\330\255\330\265\331\206 | HISN/Features/Scan/ScanView.swift"
+index 04d1b98..9f4215a 100644
+--- "a/\330\255\330\265\331\206 | HISN/Features/Scan/ScanView.swift"	
++++ "b/\330\255\330\265\331\206 | HISN/Features/Scan/ScanView.swift"	
+@@ -132,8 +132,12 @@ struct ScanView: View {
+         Haptics.result(for: result.level, enabled: environment.settings.hapticsEnabled)
+         if environment.settings.saveHistory {
+             let preview = environment.settings.hideSensitivePreviews ? sanitizedPreview(model.input) : String(model.input.prefix(100))
+-            modelContext.insert(ScanRecord(result: result, contentPreview: preview))
++            let record = ScanRecord(result: result, contentPreview: preview)
++            modelContext.insert(record)
+             try? modelContext.save()
++            if SharedHistoryService.vaultKey != nil {
++                Task { try? await SharedHistoryService.upload([record]) }
++            }
+         }
+         if !model.shouldInterrupt { path.append(result) }
+     }
+diff --git "a/\330\255\330\265\331\206 | HISN/Features/Settings/SettingsView.swift" "b/\330\255\330\265\331\206 | HISN/Features/Settings/SettingsView.swift"
+index 3a205d0..449a73f 100644
+--- "a/\330\255\330\265\331\206 | HISN/Features/Settings/SettingsView.swift"	
++++ "b/\330\255\330\265\331\206 | HISN/Features/Settings/SettingsView.swift"	
+@@ -21,6 +21,7 @@ struct SettingsView: View {
+                     Toggle("settings.tips", isOn: $settings.securityTipsEnabled).onChange(of: settings.securityTipsEnabled) { _, enabled in Task { let ok = await NotificationService().setTipsEnabled(enabled, localizedTitle: settings.string("notification.title"), localizedBody: settings.string("notification.body")); if enabled && !ok { settings.securityTipsEnabled = false; notificationFailure = true } } }
+                 }
+                 Section("settings.privacy") {
++                    NavigationLink("ربط السجل مع موقع حصن") { SharedHistoryView() }
+                     Toggle("settings.saveHistory", isOn: $settings.saveHistory)
+                     Toggle("settings.hidePreviews", isOn: $settings.hideSensitivePreviews)
+                     Label("settings.localImages", systemImage: "iphone.and.arrow.forward").foregroundStyle(.secondary)

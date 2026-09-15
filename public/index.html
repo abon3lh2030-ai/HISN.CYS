@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1319"><meta name="description" content="حصن للأمن الرقمي: فحص الرسائل والروابط والصور، مساعد ذكي وأدوات لحماية بياناتك.">
+  <title>حصن | HISN — الأمن الرقمي</title>
+  <link rel="icon" href="/assets/logo-dark.png"><link rel="stylesheet" href="/styles.css">
+  <link rel="manifest" href="/manifest.json"><link rel="apple-touch-icon" href="/assets/logo-light.png">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">تجاوز إلى المحتوى</a>
+  <aside class="sidebar">
+    <a class="brand" href="#home"><img class="logo" src="/assets/logo-dark.png" alt="شعار حصن"><span>حصن<small>HISN SECURITY</small></span></a>
+    <div class="nav-label">مساحتك الآمنة</div>
+    <nav aria-label="التنقل الرئيسي" id="nav"></nav>
+    <div class="sidebar-bottom"><div class="privacy-mark">◈ <span>خصوصيتك أولًا<small>أدوات محلية · خادم آمن</small></span></div><button class="theme secondary" id="theme" aria-label="تغيير المظهر">☀ <span>الوضع الفاتح</span></button></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><div><span class="eyebrow">حارسك للأمن الرقمي</span><h1 id="page-title">لوحة الحماية</h1></div><button class="connection secondary" id="sync-top">ربط الأجهزة <span>↗</span></button></header>
+    <main id="main" tabindex="-1"></main>
+    <footer>حصن يساعدك على التحقق؛ نتيجة الفحص ليست ضمانًا للأمان.</footer>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <dialog id="detail"><button id="close-detail" class="icon-button" aria-label="إغلاق">×</button><div id="detail-body"></div></dialog>
+  <noscript>يرجى تفعيل JavaScript لاستخدام أدوات حصن.</noscript>
+</body></html>
